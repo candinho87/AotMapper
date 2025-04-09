@@ -24,6 +24,8 @@
   </PropertyGroup>
 	<PropertyGroup>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/candinho87/AotMapper</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/candinho87/AotMapper</RepositoryUrl>
 	</PropertyGroup>
 
 	<ItemGroup>
