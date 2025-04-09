@@ -2,53 +2,52 @@
 using Apparatus.AOT.Reflection;
 using System.Linq;
 
-namespace AotMapper
+namespace SimpleAotMapper;
+
+public static class Mapper
 {
-    public static class Mapper
+    public static TTarget Map<TSource, TTarget>(TSource source)
+        where TTarget : new()
     {
-        public static TTarget Map<TSource, TTarget>(TSource source)
-            where TTarget : new()
+        if (source == null)
+            return default;
+
+        var target = new TTarget();
+        Map(source, target);
+        return target;
+    }
+
+    public static void Map<TSource, TTarget>(TSource source, TTarget target)
+    {
+        if (source == null || target == null)
+            return;
+
+        try
         {
-            if (source == null)
-                return default;
+            // Obter as propriedades do source usando Apparatus.AOT
+            var sourceProperties = AOTReflection.GetProperties<TSource>().Values;
+            var targetProperties = AOTReflection.GetProperties<TTarget>().Values;
 
-            var target = new TTarget();
-            Map(source, target);
-            return target;
-        }
-
-        public static void Map<TSource, TTarget>(TSource source, TTarget target)
-        {
-            if (source == null || target == null)
-                return;
-
-            try
+            foreach (var sourceProperty in sourceProperties)
             {
-                // Obter as propriedades do source usando Apparatus.AOT
-                var sourceProperties = AOTReflection.GetProperties<TSource>().Values;
-                var targetProperties = AOTReflection.GetProperties<TTarget>().Values;
+                // Tentar encontrar propriedade correspondente no target
+                var targetProperty = targetProperties.FirstOrDefault(p =>
+                    p.Name == sourceProperty.Name &&
+                    p.PropertyType == sourceProperty.PropertyType);
 
-                foreach (var sourceProperty in sourceProperties)
+                if (targetProperty != null)
                 {
-                    // Tentar encontrar propriedade correspondente no target
-                    var targetProperty = targetProperties.FirstOrDefault(p =>
-                        p.Name == sourceProperty.Name &&
-                        p.PropertyType == sourceProperty.PropertyType);
-
-                    if (targetProperty != null)
+                    if (sourceProperty.TryGetValue(source, out var value))
                     {
-                        if (sourceProperty.TryGetValue(source, out var value))
-                        {
-                            targetProperty.TrySetValue(target, value);
-                        }
+                        targetProperty.TrySetValue(target, value);
                     }
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Mapping error: {ex.Message}");
-                throw; // Re-throw para manter a semântica do erro original
-            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Mapping error: {ex.Message}");
+            throw; // Re-throw para manter a semântica do erro original
         }
     }
 }
