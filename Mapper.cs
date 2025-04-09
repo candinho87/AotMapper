@@ -1,6 +1,7 @@
 ﻿using System;
 using Apparatus.AOT.Reflection;
 using System.Linq;
+using SimpleAotMapper.Attributes;
 
 namespace SimpleAotMapper;
 
@@ -30,24 +31,35 @@ public static class Mapper
 
             foreach (var sourceProperty in sourceProperties)
             {
-                // Tentar encontrar propriedade correspondente no target
+
+                // 1.Try find property by name and type directly
                 var targetProperty = targetProperties.FirstOrDefault(p =>
                     p.Name == sourceProperty.Name &&
                     p.PropertyType == sourceProperty.PropertyType);
 
-                if (targetProperty != null)
+                // 2. If not found, verify PropertyMapName attribute
+                if (sourceProperty.Attributes.OfType<PropertyMapName>().FirstOrDefault()!=null)
                 {
-                    if (sourceProperty.TryGetValue(source, out var value))
-                    {
-                        targetProperty.TrySetValue(target, value);
-                    }
+                    var propertyMapName = sourceProperty.Attributes.OfType<PropertyMapName>().FirstOrDefault();
+
+                    targetProperty = targetProperties.FirstOrDefault(p =>
+                        p.Name == propertyMapName.Name &&
+                        p.PropertyType == sourceProperty.PropertyType );
+
+                }
+
+                if (targetProperty != null && sourceProperty.TryGetValue(source, out var value))
+                {
+                    targetProperty.TrySetValue(target, value);
                 }
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Mapping error: {ex.Message}");
-            throw; // Re-throw para manter a semântica do erro original
+            throw; // Re-throw to maintain the original error semantics
         }
     }
+
+   
 }

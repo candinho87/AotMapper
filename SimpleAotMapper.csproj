@@ -32,4 +32,8 @@
     <PackageReference Include="Apparatus.AOT.Reflection" Version="1.1.3" />
   </ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Extensions\" />
+	</ItemGroup>
+
 </Project>
